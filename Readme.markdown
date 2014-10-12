@@ -1,4 +1,4 @@
-## Searchly Sample Node.js Application.
+## Searchly Sample Node.js Application
 
 This example illustrates basic search features of Searchly.
 
