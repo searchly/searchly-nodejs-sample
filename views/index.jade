@@ -1,0 +1,24 @@
+extends layout
+
+block content
+    .row
+        .span12
+            .hero-unit
+                h1 Searchly Sample Node.js Application.
+
+                p
+
+                p This example illustrates basic search features of Searchly.
+
+                p Sample application is using
+                    a(href='https://github.com/elasticsearch/elasticsearch-js')= ' Elasticsearch Node.js client '
+                    = 'to integrate with Searchly.'
+
+                p To create initial index and sample data click
+                    a(href='/index')= ' Create Sample Index & Data! '
+                    = '(2 sample documents will be created.)'
+
+                p Type "technology" or "cloud" to search box and hit enter for sample search results.
+
+            if result
+                p= result

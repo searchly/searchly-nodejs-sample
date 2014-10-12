@@ -1,0 +1,33 @@
+doctype
+html
+    head
+        link(rel='stylesheet', href='/libs/bootstrap/css/bootstrap.min.css')
+        link(rel='stylesheet', href='/libs/bootstrap/css/bootstrap-responsive.min.css')
+        link(rel='stylesheet', href='/stylesheets/style.css')
+    body
+        .navbar.navbar-fixed-top
+            .navbar-inner
+                .container
+                    a.brand(href='/')= 'Searchly Node.js Sample'
+                    .nav-collapse
+                        ul.nav
+                            li
+                                a(href='/')= 'Home'
+                            li
+                                a(href='/about')= 'About'
+
+                        ul.nav.pull-right
+                            li.divider-vertical
+                            form(method="get", class="navbar-search pull-left", action="/search")
+                                input(type="text", name="q", placeholder="search", class="search-query span2")
+
+
+        .container
+            block content
+
+            hr
+            footer.footer
+                p Searchly
+
+        script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js")
+        script(src="/libs/bootstrap/js/bootstrap.min.js")

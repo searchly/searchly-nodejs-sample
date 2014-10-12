@@ -1,0 +1,18 @@
+extends layout
+block content
+
+    .page-header
+        h3 Search Results
+
+    .row
+        .span12
+            table.table.table-bordered
+                thead
+                    tr
+                        th Name
+                        th Text
+                tbody
+                    each document in result
+                        tr
+                            td= document._source.name
+                            td= document._source.text
