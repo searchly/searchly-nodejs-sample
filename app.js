@@ -20,7 +20,7 @@ var connectionString = 'https://site:your-key@xyz.searchly.com';
 if (process.env.SEARCHBOX_URL) {
     // Heroku
     connectionString = process.env.SEARCHBOX_URL;
-} else if (process.env.SEARCHBOX_URL) {
+} else if (process.env.SEARCHLY_URL) {
     // CloudControl, Modulus
     connectionString = process.env.SEARCHLY_URL;
 } else if (process.env.VCAP_SERVICES) {
