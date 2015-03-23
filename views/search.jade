@@ -5,14 +5,79 @@ block content
         h3 Search Results
 
     .row
-        .span12
-            table.table.table-bordered
-                thead
-                    tr
-                        th Name
-                        th Text
-                tbody
-                    each document in result
+        .span3
+
+            div
+                h4 Facets
+                hr
+
+            if response.hits.total > 0
+
+                dl
+                    dt Countries
+                    each country in response.aggregations.country.buckets
+                        dd
+                            a(href='/search?q=' + query + '&agg_value=' + country.key + '&agg_field=country.raw' )
+                                =country.key + " (" + country.doc_count + ")"
+
+                dl
+                    dt Cities
+                    each city in response.aggregations.city.buckets
+                        dd
+                            a(href='/search?q=' + query + '&agg_value=' + city.key + '&agg_field=city.raw' )
+                                =city.key + " (" + city.doc_count + ")"
+
+                dl
+                    dt Languages
+                    each language in response.aggregations.language.buckets
+                        dd
+                            a(href='/search?q=' + query + '&agg_value=' + language.key + '&agg_field=language.raw' )
+                                =language.key + " (" + language.doc_count + ")"
+
+                dl
+                    dt Job Titles
+                    each job_title in response.aggregations.job_title.buckets
+                        dd
+                            a(href='/search?q=' + query + '&agg_value=' + job_title.key + '&agg_field=job_title.raw' )
+                                =job_title.key + " (" + job_title.doc_count + ")"
+
+                dl
+                    dt Genders
+                    each gender in response.aggregations.gender.buckets
+                        dd
+                            a(href='/search?q=' + query + '&agg_value=' + gender.key + '&agg_field=gender' )
+                                =gender.key + " (" + gender.doc_count + ")"
+
+        .span9
+
+            h4 #{response.hits.total} Results - Took #{response.took}  miliseconds
+            hr
+
+            if response.hits.total > 0
+                table.table.table-bordered
+                    thead
                         tr
-                            td= document._source.name
-                            td= document._source.text
+                            th First Name
+                            th Last Name
+                            th Country
+                            th City
+                            th Language
+                            th Job Title
+                            th Gender
+                                tbody
+                        each employee in response.hits.hits
+                            tr
+                                td= employee._source.first_name
+                                td= employee._source.last_name
+                                td= employee._source.country
+                                td= employee._source.city
+                                td= employee._source.language
+                                td= employee._source.job_title
+                                td= employee._source.gender
+            else if response.suggest.simple_phrase[0].options[0]
+                p
+                    | Did you mean&nbsp;
+                    a(href="/search?q=" + response.suggest.simple_phrase[0].options[0].text) !{response.suggest.simple_phrase[0].options[0].highlighted}
+                    | ?
+            else
+                p No resulsts found for keyword #[b #{query}]

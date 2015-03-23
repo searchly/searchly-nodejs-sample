@@ -13,9 +13,10 @@ var express = require('express'),
     methodOverride = require('method-override'),
     bodyParser = require('body-parser'),
     multer = require('multer'),
-    errorHandler = require('errorhandler');
+    errorHandler = require('errorhandler'),
+    fs = require('fs');
 
-var connectionString = 'https://site:your-key@xyz.searchly.com';
+var connectionString = 'https://paas:208f0b09e3b21e39b67ad1e828f69537@fili-us-east-1.searchly.com';
 
 if (process.env.SEARCHBOX_URL) {
     // Heroku
@@ -31,11 +32,12 @@ if (process.env.SEARCHBOX_URL) {
 console.info(connectionString);
 
 var client = new elasticsearch.Client({
-    host: connectionString
+    host: connectionString,
+    log: 'debug'
 });
 
-var _index = "sample";
-var _type = 'document';
+var _index = "company";
+var _type = 'employee';
 
 // configuration
 app.set('port', process.env.PORT || 4000);
@@ -44,7 +46,7 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(methodOverride());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(multer());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -54,42 +56,153 @@ app.get('/', function (req, res) {
 });
 
 app.get('/index', function (req, res) {
-    client.indices.create({index: _index}, function (error, response) {
-        client.bulk({
-            body: [
-                // action description
-                { "index": { "_index": _index, "_type": _type, "_id": "1"} },
-                {'name': 'Reliability', 'text': 'Reliability is improved if multiple redundant sites are used, ' +
-                    'which makes well-designed cloud computing suitable for business continuity and disaster recovery. '},
+    client.indices.create({
+        index: _index,
+        body: {
+            "mappings": {
+                "employee": {
+                    "properties": {
+                        "city": {
+                            "type": "string",
+                            "fields": {
+                                "raw": {"type": "string", "index": "not_analyzed"}
+                            }
+                        },
+                        "country": {
+                            "type": "string",
+                            "fields": {
+                                "raw": {"type": "string", "index": "not_analyzed"}
+                            }
+                        },
+                        "first_name": {
+                            "type": "string"
+                        },
+                        "last_name": {
+                            "type": "string"
+                        },
+                        "gender": {
+                            "type": "string", "index": "not_analyzed"
+                        },
+                        "job_title": {
+                            "type": "string",
+                            "fields": {
+                                "raw": {"type": "string", "index": "not_analyzed"}
+                            }
+                        },
+                        "language": {
+                            "type": "string",
+                            "fields": {
+                                "raw": {"type": "string", "index": "not_analyzed"}
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
-                { "index": { "_index": _index, "_type": _type, "_id": "2"} },
-                {'name': 'Virtualization', 'text': 'Virtualization technology allows servers and storage devices to be shared and utilization be increased. ' +
-                    'Applications can be easily migrated from one physical server to another. '},
-            ]
-        }, function (err, resp) {
-            res.render('index', {result: 'Indexing Completed!'});
-        })
+    }, function (error, response) {
+        fs.readFile('sample_data.json', 'utf8', function (err, data) {
+            if (err) throw err;
+            var sampleDataSet = JSON.parse(data);
+
+            var body = [];
+
+            sampleDataSet.forEach(function (item) {
+                body.push({"index": {"_index": _index, "_type": _type}});
+                body.push(item);
+            });
+
+            client.bulk({
+                body: body
+            }, function (err, resp) {
+                res.render('index', {result: 'Indexing Completed!'});
+            })
+        });
     })
-});
+})
+;
 
 app.get('/search', function (req, res) {
+
+    var aggValue = req.query.agg_value;
+    var aggField = req.query.agg_field;
+
+    var filter = {};
+    filter[aggField] = aggValue;
+
     client.search({
         index: _index,
         type: _type,
         body: {
             "query": {
-                "multi_match": {
-                    "query": req.query.q,
-                    "fields": [ "name", "text" ]
+                "filtered": {
+                    "query": {
+                        "multi_match": {
+                            "query": req.query.q,
+                            "fields": ["first_name^100", "last_name^20", "country^5", "city^3", "language^10", "job_title^50"],
+                            "fuzziness": 1
+                        }
+                    },
+                    "filter": {
+                        "term": (aggField ? filter : undefined)
+                    }
+                }
+
+            },
+            "aggs": {
+                "country": {
+                    "terms": {
+                        "field": "country.raw"
+                    }
+                },
+                "city": {
+                    "terms": {
+                        "field": "city.raw"
+                    }
+                },
+                "language": {
+                    "terms": {
+                        "field": "language.raw"
+                    }
+                },
+                "job_title": {
+                    "terms": {
+                        "field": "job_title.raw"
+                    }
+                },
+                "gender": {
+                    "terms": {
+                        "field": "gender"
+                    }
+                }
+            },
+            "suggest": {
+                "text": req.query.q,
+                "simple_phrase": {
+                    "phrase": {
+                        "field": "first_name",
+                        "size": 1,
+                        "real_word_error_likelihood": 0.95,
+                        "max_errors": 0.5,
+                        "gram_size": 2,
+                        "direct_generator": [{
+                            "field": "first_name",
+                            "suggest_mode": "always",
+                            "min_word_length": 1
+                        }],
+                        "highlight": {
+                            "pre_tag": "<b><em>",
+                            "post_tag": "</em></b>"
+                        }
+                    }
                 }
             }
         }
     }).then(function (resp) {
-        var hits = resp.hits.hits;
-        res.render('search', { result: hits});
+        res.render('search', {response: resp, query: req.query.q});
     }, function (err) {
         console.trace(err.message);
-        res.render('search', { result: err.message });
+        res.render('search', {result: err.message});
     });
 });
 

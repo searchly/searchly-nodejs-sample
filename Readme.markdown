@@ -25,3 +25,22 @@ This sample can be deployed to Heroku with no change.
 
 * Install Searchly Addon
 * Deploy sample application
+
+
+Paul
+
+Field weighting - boosting
+
+Autocomplete
+
+security information about how data is transferred to SearchBox
+
+Paul Roth (to All):
+ip restrictions, https, etc
+
+Write ip filtering
+Read everything with ip
+
+Faceting query samples.
+
+security information, data storage
