@@ -16,7 +16,7 @@ var express = require('express'),
     errorHandler = require('errorhandler'),
     fs = require('fs');
 
-var connectionString = 'https://paas:208f0b09e3b21e39b67ad1e828f69537@fili-us-east-1.searchly.com';
+var connectionString = 'localhost:9200';
 
 if (process.env.SEARCHBOX_URL) {
     // Heroku
