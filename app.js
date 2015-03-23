@@ -56,9 +56,33 @@ app.get('/', function (req, res) {
 });
 
 app.get('/index', function (req, res) {
+
+    client.indices.delete({index: _index});
+
     client.indices.create({
         index: _index,
         body: {
+            "settings": {
+                "analysis": {
+                    "filter": {
+                        "autocomplete_filter": {
+                            "type": "edge_ngram",
+                            "min_gram": 1,
+                            "max_gram": 10
+                        }
+                    },
+                    "analyzer": {
+                        "autocomplete": {
+                            "type": "custom",
+                            "tokenizer": "standard",
+                            "filter": [
+                                "lowercase",
+                                "autocomplete_filter"
+                            ]
+                        }
+                    }
+                }
+            },
             "mappings": {
                 "employee": {
                     "properties": {
@@ -75,7 +99,10 @@ app.get('/index', function (req, res) {
                             }
                         },
                         "first_name": {
-                            "type": "string"
+                            "type": "string",
+                            "fields": {
+                                "autocomplete": {"type": "string", "index_analyzer": "autocomplete"}
+                            }
                         },
                         "last_name": {
                             "type": "string"
@@ -121,6 +148,36 @@ app.get('/index', function (req, res) {
     })
 })
 ;
+
+app.get('/autocomplete', function (req, res) {
+    client.search({
+        index: _index,
+        type: _type,
+        body: {
+            "query": {
+                "filtered": {
+                    "query": {
+                        "multi_match": {
+                            "query": req.query.term,
+                            "fields": ["first_name.autocomplete"]
+                        }
+                    }
+                }
+
+            }
+        }
+    }).then(function (resp) {
+
+        var results = resp.hits.hits.map(function(hit){
+            return hit._source.first_name + " " + hit._source.last_name;
+        });
+
+        res.send(results);
+    }, function (err) {
+        console.trace(err.message);
+        res.send({response: err.message});
+    });
+});
 
 app.get('/search', function (req, res) {
 
@@ -202,7 +259,7 @@ app.get('/search', function (req, res) {
         res.render('search', {response: resp, query: req.query.q});
     }, function (err) {
         console.trace(err.message);
-        res.render('search', {result: err.message});
+        res.render('search', {response: err.message});
     });
 });
 

@@ -4,6 +4,8 @@ html
         link(rel='stylesheet', href='/libs/bootstrap/css/bootstrap.min.css')
         link(rel='stylesheet', href='/libs/bootstrap/css/bootstrap-responsive.min.css')
         link(rel='stylesheet', href='/stylesheets/style.css')
+        link(rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css")
+
     body
         .navbar.navbar-fixed-top
             .navbar-inner
@@ -19,7 +21,7 @@ html
                         ul.nav.pull-right
                             li.divider-vertical
                             form(method="get", class="navbar-search pull-left", action="/search")
-                                input(type="text", name="q", placeholder="search", class="search-query span2")
+                                input(type="text", name="q", placeholder="search", class="search-query span2" autocomplete="off")
 
 
         .container
@@ -31,3 +33,5 @@ html
 
         script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js")
         script(src="/libs/bootstrap/js/bootstrap.min.js")
+        script(src="//code.jquery.com/ui/1.11.4/jquery-ui.js")
+        script(src="/js/autocomplete.js")
