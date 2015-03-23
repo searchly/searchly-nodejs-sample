@@ -4,9 +4,9 @@ This example illustrates basic search features of Searchly.
 
 Sample application is using [Nodejs](https://github.com/elasticsearch/elasticsearch-js) Elasticsearch client to integrate with Searchly.
 
-To create initial index and sample data click Create Sample Index & Data! (2 sample documents will be created.) at index page.
+To create initial index and sample data click Create Sample Index & Data!
 
-Type "technology" or "cloud" to search box and hit enter for sample search results.
+Type "John" or "Robert" to search box and hit enter for sample search results.
 
 ## Local Setup
 
