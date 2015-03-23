@@ -14,33 +14,6 @@ To run example in your local environment with a local Elasticsearch instance, ch
 
 var connectionString = 'http://localhost:9200';
 
-## Heroku Deployment
+## PAAS Deployment
 
-This sample can be deployed to Heroku with no change.
-
-* Install SearchBox/Searchly Addon
-* Deploy sample application
-
-## CloudFoundry Deployment
-
-* Install Searchly Addon
-* Deploy sample application
-
-
-Paul
-
-Field weighting - boosting
-
-Autocomplete
-
-security information about how data is transferred to SearchBox
-
-Paul Roth (to All):
-ip restrictions, https, etc
-
-Write ip filtering
-Read everything with ip
-
-Faceting query samples.
-
-security information, data storage
+This sample can be deployed to Heroku, CloudControl, Pivotal, OpenShift and Modulus with no change.
