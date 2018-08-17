@@ -223,6 +223,27 @@ app.get('/search', function (req, res) {
                     "field": "gender"
                 }
             }
+        },
+        "suggest": {
+            "text": req.query.q,
+            "simple_phrase": {
+                "phrase": {
+                    "field": "first_name",
+                    "size": 1,
+                    "real_word_error_likelihood": 0.95,
+                    "max_errors": 0.5,
+                    "gram_size": 2,
+                    "direct_generator": [{
+                        "field": "first_name",
+                        "suggest_mode": "always",
+                        "min_word_length": 1
+                    }],
+                    "highlight": {
+                        "pre_tag": "<b><em>",
+                        "post_tag": "</em></b>"
+                    }
+                }
+            }
         }
     }
 

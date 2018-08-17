@@ -1,0 +1,7 @@
+---
+applications:
+- name:    searchly-elasticsearch-nodejs-sample
+  host:    searchly-elasticsearch-nodejs-sample
+  memory:  64M
+  services:
+    - searchly-nd
