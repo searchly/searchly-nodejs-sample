@@ -16,4 +16,4 @@ var connectionString = 'http://localhost:9200';
 
 ## PAAS Deployment
 
-This sample can be deployed to Heroku, CloudControl, Pivotal, OpenShift and Modulus with no change.
+This sample can be deployed to Heroku, Pivotal, IBM Cloud with no change.

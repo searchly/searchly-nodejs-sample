@@ -42,7 +42,7 @@ var _type = 'employee';
 // configuration
 app.set('port', process.env.PORT || 4000);
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 app.use(logger('dev'));
 app.use(methodOverride());
 app.use(bodyParser.json());
@@ -87,39 +87,39 @@ app.get('/index', function (req, res) {
                 "employee": {
                     "properties": {
                         "city": {
-                            "type": "string",
+                            "type": "text",
                             "fields": {
-                                "raw": {"type": "string", "index": "not_analyzed"}
+                                "raw": {"type": "keyword"}
                             }
                         },
                         "country": {
-                            "type": "string",
+                            "type": "text",
                             "fields": {
-                                "raw": {"type": "string", "index": "not_analyzed"}
+                                "raw": {"type": "keyword"}
                             }
                         },
                         "first_name": {
-                            "type": "string",
+                            "type": "text",
                             "fields": {
-                                "autocomplete": {"type": "string", "index_analyzer": "autocomplete"}
+                                "autocomplete": {"type": "text", "analyzer": "autocomplete"}
                             }
                         },
                         "last_name": {
-                            "type": "string"
+                            "type": "text"
                         },
                         "gender": {
-                            "type": "string", "index": "not_analyzed"
+                            "type": "keyword"
                         },
                         "job_title": {
-                            "type": "string",
+                            "type": "text",
                             "fields": {
-                                "raw": {"type": "string", "index": "not_analyzed"}
+                                "raw": {"type": "keyword"}
                             }
                         },
                         "language": {
-                            "type": "string",
+                            "type": "text",
                             "fields": {
-                                "raw": {"type": "string", "index": "not_analyzed"}
+                                "raw": {"type": "keyword"}
                             }
                         }
                     }
@@ -128,6 +128,9 @@ app.get('/index', function (req, res) {
         }
 
     }, function (error, response) {
+
+      if (error) throw error;
+
         fs.readFile('sample_data.json', 'utf8', function (err, data) {
             if (err) throw err;
             var sampleDataSet = JSON.parse(data);
@@ -155,15 +158,10 @@ app.get('/autocomplete', function (req, res) {
         type: _type,
         body: {
             "query": {
-                "filtered": {
-                    "query": {
-                        "multi_match": {
-                            "query": req.query.term,
-                            "fields": ["first_name.autocomplete"]
-                        }
+                    "multi_match": {
+                        "query": req.query.term,
+                        "fields": ["first_name.autocomplete"]
                     }
-                }
-
             }
         }
     }).then(function (resp) {
@@ -181,80 +179,59 @@ app.get('/autocomplete', function (req, res) {
 
 app.get('/search', function (req, res) {
 
+    var body = {
+        "query": {
+            "bool": {
+                "must": {
+                    "multi_match": {
+                        "query": req.query.q,
+                        "fields": ["first_name^100", "last_name^20", "country^5", "city^3", "language^10", "job_title^50"],
+                        "fuzziness": 1
+                    }
+                }
+            }
+        },
+        "aggs": {
+            "country": {
+                "terms": {
+                    "field": "country.raw"
+                }
+            },
+            "city": {
+                "terms": {
+                    "field": "city.raw"
+                }
+            },
+            "language": {
+                "terms": {
+                    "field": "language.raw"
+                }
+            },
+            "job_title": {
+                "terms": {
+                    "field": "job_title.raw"
+                }
+            },
+            "gender": {
+                "terms": {
+                    "field": "gender"
+                }
+            }
+        }
+    }
+
     var aggValue = req.query.agg_value;
     var aggField = req.query.agg_field;
-
-    var filter = {};
-    filter[aggField] = aggValue;
+    if (aggField) {
+      var filter = {};
+      filter[aggField] = aggValue;
+        body['query']['bool']['filter'] = { "term": filter}
+    }
 
     client.search({
         index: _index,
         type: _type,
-        body: {
-            "query": {
-                "filtered": {
-                    "query": {
-                        "multi_match": {
-                            "query": req.query.q,
-                            "fields": ["first_name^100", "last_name^20", "country^5", "city^3", "language^10", "job_title^50"],
-                            "fuzziness": 1
-                        }
-                    },
-                    "filter": {
-                        "term": (aggField ? filter : undefined)
-                    }
-                }
-
-            },
-            "aggs": {
-                "country": {
-                    "terms": {
-                        "field": "country.raw"
-                    }
-                },
-                "city": {
-                    "terms": {
-                        "field": "city.raw"
-                    }
-                },
-                "language": {
-                    "terms": {
-                        "field": "language.raw"
-                    }
-                },
-                "job_title": {
-                    "terms": {
-                        "field": "job_title.raw"
-                    }
-                },
-                "gender": {
-                    "terms": {
-                        "field": "gender"
-                    }
-                }
-            },
-            "suggest": {
-                "text": req.query.q,
-                "simple_phrase": {
-                    "phrase": {
-                        "field": "first_name",
-                        "size": 1,
-                        "real_word_error_likelihood": 0.95,
-                        "max_errors": 0.5,
-                        "gram_size": 2,
-                        "direct_generator": [{
-                            "field": "first_name",
-                            "suggest_mode": "always",
-                            "min_word_length": 1
-                        }],
-                        "highlight": {
-                            "pre_tag": "<b><em>",
-                            "post_tag": "</em></b>"
-                        }
-                    }
-                }
-            }
-        }
+        body: body
     }).then(function (resp) {
         res.render('search', {response: resp, query: req.query.q});
     }, function (err) {
