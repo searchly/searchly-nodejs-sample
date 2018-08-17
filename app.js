@@ -22,11 +22,17 @@ if (process.env.SEARCHBOX_URL) {
     // Heroku
     connectionString = process.env.SEARCHBOX_URL;
 } else if (process.env.SEARCHLY_URL) {
-    // CloudControl, Modulus
     connectionString = process.env.SEARCHLY_URL;
 } else if (process.env.VCAP_SERVICES) {
-    // Pivotal, Openshift
-    connectionString = JSON.parse(process.env.VCAP_SERVICES)['searchly-n/a'][0]['credentials']['uri'];
+    // Pivotal, IBM
+    var vcap = JSON.parse(process.env.VCAP_SERVICES);
+    if (vcap['searchly-n/a']) {
+      // Pivotal
+        connectionString = JSON.parse(process.env.VCAP_SERVICES)['searchly-n/a'][0]['credentials']['uri'];
+    } else  if (vcap['ibmcloud-link']){
+      // IBM
+        connectionString = JSON.parse(process.env.VCAP_SERVICES)['ibmcloud-link'][0]['credentials']['uri'];
+    }
 }
 
 console.info(connectionString);
