@@ -29,9 +29,9 @@ if (process.env.SEARCHBOX_URL) {
     if (vcap['searchly-n/a']) {
       // Pivotal
         connectionString = JSON.parse(process.env.VCAP_SERVICES)['searchly-n/a'][0]['credentials']['uri'];
-    } else  if (vcap['ibmcloud-link']){
+    } else  if (vcap['searchly-es']){
       // IBM
-        connectionString = JSON.parse(process.env.VCAP_SERVICES)['ibmcloud-link'][0]['credentials']['uri'];
+        connectionString = JSON.parse(process.env.VCAP_SERVICES)['searchly-es'][0]['credentials']['uri'];
     }
 }
 
